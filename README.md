@@ -141,7 +141,7 @@ ORDER BY
 ```
 ---
 
-## 🔄 Denormalization Task: Flattening the Category Tree
+## 🔄2.1 Denormalization Task: Flattening the Category Tree
 
 In eCommerce systems, categories often form a hierarchical structure. To simplify access and improve performance (e.g., for breadcrumb navigation or filtering), we flatten the tree into a readable and queryable format.
 
