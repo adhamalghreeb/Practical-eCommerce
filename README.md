@@ -198,3 +198,56 @@ ORDER BY FullPath;
 ### 🧱 Step 3: Automating Updates
 
 use a scheduled job to refresh the entire CategoryPath table periodically
+
+---
+
+## 🔍 Task: Search Products with the Word "Camera"
+### 📝 Solution 1: Basic LIKE Query
+
+```sql
+SELECT *
+FROM Product
+WHERE name LIKE '%camera%'
+   OR description LIKE '%camera%';
+```
+⚠️ This query is not optimal for large datasets as it results in a full table scan due to the leading wildcard %.
+
+### 📝 Solution 2: Optimized Full-Text Search
+```sql
+--- First, add a full-text index on the name and description columns:
+ALTER TABLE Product 
+ADD FULLTEXT(name, description);
+
+--- Then use MATCH with AGAINST to perform a fast, indexed search:
+SELECT *
+FROM Product
+WHERE MATCH(name, description) AGAINST('camera' IN NATURAL LANGUAGE MODE);
+```
+
+---
+
+## 🔍 Task: Recommended top products forcustomer
+```sql
+SELECT 
+    p.product_id,
+    p.name,
+    SUM(od.quantity) AS total_quantity_sold
+FROM Products p
+JOIN OrderDetails od ON p.product_id = od.product_id
+WHERE NOT EXISTS ( --- remove products that customer did buy beofre
+    SELECT 1
+    FROM Orders o
+    JOIN OrderDetails od2 ON o.order_id = od2.order_id
+    WHERE o.customer_id = :givenCustomerId
+      AND od2.product_id = p.product_id
+)
+AND (p.category_id, p.brand, p.company) IN ( --- filter by brand and company
+    SELECT DISTINCT p.category_id, p.brand, p.company
+    FROM Orders o
+    JOIN OrderDetails od ON o.order_id = od.order_id
+    JOIN Products p ON od.product_id = p.product_id
+    WHERE o.customer_id = :givenCustomerId
+)
+GROUP BY p.product_id, p.name
+ORDER BY total_quantity_sold DESC
+```
