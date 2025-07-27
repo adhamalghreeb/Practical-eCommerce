@@ -328,3 +328,73 @@ BEGIN
     END IF;
 END;
 ```
+
+---
+## Task: Populate Database with 5 Million Records
+To generate 5 million fake user records efficiently, I used a stored procedure in MySQL and automated its execution using a Python script.
+
+Stored Procedure: insert_users_chunk()
+This procedure inserts 100,000 records per call, generating realistic user data and tracking the last inserted ID to ensure no duplicates.
+
+```sql
+CREATE PROCEDURE insert_users_chunk()
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  DECLARE current_id INT;
+  DECLARE inserted_id INT;
+
+  -- Get last inserted ID
+  SELECT last_inserted_id INTO current_id FROM insert_tracker;
+  SET inserted_id = current_id;
+
+  WHILE i <= 100000 DO
+    SET inserted_id = inserted_id + 1;
+
+    INSERT IGNORE INTO userinfo (
+      name, email, password, dob, address, city,
+      state_id, zip, country_id, account_type, closest_airport
+    )
+    VALUES (
+      CONCAT('Name_', inserted_id),
+      CONCAT('user_', inserted_id, '@example.com'),
+      'pass123',
+      DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND()*10000) DAY),
+      CONCAT('Address_', inserted_id),
+      CONCAT('City_', FLOOR(RAND()*100)),
+      FLOOR(RAND()*100),
+      LPAD(FLOOR(RAND()*99999), 5, '0'),
+      FLOOR(RAND()*200),
+      IF(RAND() > 0.5, 'standard', 'premium'),
+      CONCAT(
+        CHAR(FLOOR(RAND()*26)+65),
+        CHAR(FLOOR(RAND()*26)+65),
+        CHAR(FLOOR(RAND()*26)+65)
+      )
+    );
+
+    SET i = i + 1;
+  END WHILE;
+
+  -- Update tracker
+  UPDATE insert_tracker SET last_inserted_id = inserted_id;
+
+  SELECT CONCAT('Inserted up to row: ', inserted_id) AS status;
+END$$
+
+DELIMITER ;
+```
+
+## Tracker Table
+To support the procedure, I created a small tracking table to record the last inserted ID:
+```sql
+CREATE TABLE insert_tracker (
+  last_inserted_id INT NOT NULL DEFAULT 0
+);
+
+INSERT INTO insert_tracker VALUES (0);
+```
+
+## Python Automation Script
+I used a Python script to loop through and call the stored procedure 50 times (to reach 5M records).
+You can find the script here:
+[Download Python Script](./automation.py)
