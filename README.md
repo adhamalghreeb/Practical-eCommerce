@@ -397,4 +397,20 @@ INSERT INTO insert_tracker VALUES (0);
 ## Python Automation Script
 I used a Python script to loop through and call the stored procedure 50 times (to reach 5M records).
 You can find the script here:
-[Download Python Script](./automation.py)
+[Python Script](./automation.py)
+
+---
+
+## Task: Query comparsion
+1.
+| Simple Query | Execution Time Before Optimization | Optimization Technique | Rewrite Query | Execution Time After Optimization |
+|--------------|-------------------------------------|-------------------------|----------------|------------------------------------|
+| `SELECT COUNT(*) FROM userinfo WHERE name = 'John' AND state_id = 100;` | ~1.930 seconds | Added composite covering index | `ALTER TABLE userinfo ADD INDEX name_state_idx(name, state_id);` | ~0.013 seconds |
+
+2.
+| Simple Query | Execution Time Before Optimization | Optimization Technique | Rewrite Query / Index Added | Execution Time After Optimization |
+|--------------|------------------------------------|-------------------------|------------------------------|------------------------------------|
+| `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | 1.89 sec | ❌ None (Full Table Scan) | Original query without indexes | 1.89 sec |
+| `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | 1.89 sec | ✅ Add index on `state_id` | `ALTER TABLE userinfo ADD INDEX state_id_idx(state_id);` | 0.0095 sec |
+| `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | 1.89 sec | ✅ Add composite index (`state_id`, `city`, `address`) | `ALTER TABLE userinfo ADD INDEX state_city_address_idx(state_id, city, address);` | 0.0099 sec (used `state_id_idx`) |
+| `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | — | ❌ Dropped `state_id_idx`, only composite index remains | Same query, but only `state_city_address_idx` exists | 17.4 sec ❌ (slower than original) |
