@@ -1,5 +1,25 @@
 # 🛒 Practical-eCommerce
 
+## 📑 Table of Contents
+
+- [📘 1.1 ERD](#-11-erd)
+- [📦 Task 1: Create the Database Schema](#-task-1-create-the-database-schema)
+- [📦 Task 2: Daily Revenue Report](#-task-2-daily-revenue-report)
+- [📦 Task 3: Monthly Top-Selling Products](#-task-3-monthly-top-selling-products)
+- [📦 Task 4: High-Value Customers (Past Month)](#-task-4-high-value-customers-past-month)
+- [🔄 2.1 Denormalization Task: Flattening the Category Tree](#-21-denormalization-task-flattening-the-category-tree)
+- [🔍 Task: Search Products with the Word "Camera"](#-task-search-products-with-the-word-camera)
+- [🔍 Task: Recommended top products forcustomer](#-task-recommended-top-products-forcustomer)
+- [🧾 Task: Table `sales_history`](#-task-table-sales_history)
+- [🧾 Task: LOCK field quantity AT TABLE `Product`](#-task-lock-field-quantity-at-table-product)
+- [🧾 Task: LOCK ROW AT TABLE `Product`](#-task-lock-row-at-table-product)
+- [Task: Populate Database with 5 Million Records](#task-populate-database-with-5-million-records)
+- [Task: Query comparison](#task-query-comparison)
+- [Task: Create database functions to seeds database](#task-create-database-functions-to-seeds-database)
+- [Task: Query comparison and enhancement](#task-query-comparison-and-enhancement)
+
+
+
 ## 📘 1.1 ERD
 
 ![ERD Diagram](ERD.png)
