@@ -2,7 +2,7 @@
 
 ## 📑 Table of Contents
 
-- [📘 1.1 ERD](#-11-erd)
+- [📘 ERD](#-11-erd)
 - [📦 Create the Database Schema](#-task-1-create-the-database-schema)
 - [📦 Daily Revenue Report](#-task-2-daily-revenue-report)
 - [📦 Monthly Top-Selling Products](#-task-3-monthly-top-selling-products)
