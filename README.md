@@ -438,13 +438,12 @@ You can find the script here:
 ---
 
 ## Task: Create database functions to seeds database
-You find a stored proc
 You can find the script here:
 [Python Script](./automationAll.py)
 I used a Python script to loop through and call the stored procedure.
 
 You can find the stored procedure for each table here
-[Python Script](./dbInsertionFunctions.sql)
+[MYSQL Code](./dbInsertionFunctions.sql)
 
 ---
 
