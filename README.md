@@ -401,7 +401,7 @@ You can find the script here:
 
 ---
 
-## Task: Query comparsion
+## Task: Query comparison
 1.
 | Simple Query | Execution Time Before Optimization | Optimization Technique | Rewrite Query | Execution Time After Optimization |
 |--------------|-------------------------------------|-------------------------|----------------|------------------------------------|
@@ -414,3 +414,47 @@ You can find the script here:
 | `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | 1.89 sec | ✅ Add index on `state_id` | `ALTER TABLE userinfo ADD INDEX state_id_idx(state_id);` | 0.0095 sec |
 | `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | 1.89 sec | ✅ Add composite index (`state_id`, `city`, `address`) | `ALTER TABLE userinfo ADD INDEX state_city_address_idx(state_id, city, address);` | 0.0099 sec (used `state_id_idx`) |
 | `SELECT COUNT(*) FROM userinfo WHERE state_id = 5;` | — | ❌ Dropped `state_id_idx`, only composite index remains | Same query, but only `state_city_address_idx` exists | 17.4 sec ❌ (slower than original) |
+
+---
+
+## Task: Create database functions to seeds database
+You find a stored proc
+You can find the script here:
+[Python Script](./automationAll.py)
+I used a Python script to loop through and call the stored procedure.
+
+You can find the stored procedure for each table here
+[Python Script](./dbInsertionFunctions.sql)
+
+---
+
+## Task: Query comparison and enhancement
+
+### Write SQL Query to Retrieve the total number of products in each category
+
+| Execution Time Before Optimization | Optimization Technique                        | Rewrite Query                                                                                                                                 | Execution Time After Optimization |
+|------------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| ~19.8 sec (Nested Loop Join)       | ❌ None (uses `fk_product_category` index only) | `SELECT c.category_id, c.category_name, COUNT(p.product_id) AS total_products FROM Category c INNER JOIN Product p ON p.category_id = c.category_id GROUP BY c.category_id, c.category_name;` | ~19.8 sec                         |
+| ~19.8 sec                          | ✅ Added Covering Index on `(category_id, product_id)` | `ALTER TABLE Product ADD INDEX category_id_product_id_idx (category_id, product_id);`<br>Same query reused | ~26.3 sec ❌ (Aggregation became slightly slower) |
+
+note: we can try to group by category id and it will make some little effect to a less number
+
+### Write SQL Query to Find the top customers by total spending.
+
+| Execution Time Before Optimization | Optimization Technique | Rewrite Query | Execution Time After Optimization |
+|------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| ~7.00 sec (Nested Loop Join + Temporary Table + Sort) | ❌ No further enhancements possible (already uses `PRIMARY` index on customer lookup) | `SELECT CONCAT(c.first_name, ' ', c.last_name) AS customer_name, SUM(o.total_amount) AS total_spending FROM Customer c INNER JOIN \`Order\` o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name ORDER BY total_spending DESC;` | ~7.00 sec |
+
+### Write SQL Query to Retrieve the most recent orders with customer information with 1000 orders
+
+| Execution Time Before Optimization | Optimization Technique       | Rewrite Query / Index Added                                                                 | Execution Time After Optimization |
+|------------------------------------|-------------------------------|---------------------------------------------------------------------------------------------|-----------------------------------|
+| ~492 ms (Table Scan + Sort)        | ❌ None (Sort on `order_date`) | Original query using `ORDER BY o.order_date DESC LIMIT 1000`                               | ~492 ms                           |
+| ~9.3 ms (Index Scan)               | ✅ Index on `order_date` DESC  | `CREATE INDEX idx_order_date ON \`Order\`(order_date DESC);`                                | ~9.3 ms                           |
+
+### Write SQL Query to List products that have low stock quantities of less than 10 quantities
+
+| Execution Time Before Optimization | Optimization Technique         | Rewrite Query / Index Added                                             | Execution Time After Optimization |
+|------------------------------------|----------------------------------|--------------------------------------------------------------------------|-----------------------------------|
+| ~25.8 sec (Table Scan)             | ❌ None (Full Table Scan on Product) | `SELECT * FROM Product WHERE stock_quantity <= 10;`                     | ~25.8 sec                         |
+| ~2.45 sec (Index Range Scan)       | ✅ Add index on `stock_quantity`     | `CREATE INDEX idx_stock_quantity ON Product(stock_quantity);`           | ~2.45 sec                         |
